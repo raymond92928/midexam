@@ -15,13 +15,13 @@ int main(){
 	for (int i = 0; i < num; i++){
 		a[i]=rand()%10000;  //make 0-99 random number
 	}
-	printf("排序前: ");
+	printf("before sort: ");
 	for (int i = 0; i < num; i++){
 		printf("%d\t",a[i]); 
 	}
 	printf("\n");
 	select(a,num);
-	printf("排序後: ");
+	printf("after sort: ");
 	for (int i = 0; i < num; i++){
 		printf("%d\t",a[i]); 
 	}
