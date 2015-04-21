@@ -25,6 +25,9 @@ int main(){
 	for (int i = 0; i < num; i++){
 		printf("%d\t",a[i]); 
 	}
+	printf("\n");
+	system("pause");
+	return 0;
 }
 
 void select(int a[1000],int num){
