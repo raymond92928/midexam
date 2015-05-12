@@ -19,6 +19,8 @@ int main()
 		scanf("%d %d %d", &p, &q, &r);
 		N = Generate_N(p, q, r);
 		printf("N=2^%d 3^%d 5^%d = %d\n",p,q,r,N);
+		printf("only print the time?1=yes 0=no: ");
+		scanf("%d",&q);
 		// Create Memory for x and y
 		x_r = (double *) malloc(N*sizeof(double));
 		x_i = (double *) malloc(N*sizeof(double));
@@ -35,7 +37,7 @@ int main()
 			t2 = clock();
 			printf("%f secs\n", 1.0*(t2-t1)/CLOCKS_PER_SEC);	
 			system("pause");
-			//Print_Complex_Vector(y_r, y_i, N);	
+			q?0:Print_Complex_Vector(y_r, y_i, N);	
 		}
 		else if((N%3) == 0){
 			t1 = clock();
@@ -43,7 +45,7 @@ int main()
 			t2 = clock();
 			printf("%f secs\n", 1.0*(t2-t1)/CLOCKS_PER_SEC);	
 			system("pause");
-			//Print_Complex_Vector(y_r, y_i, N);	
+			q?0:Print_Complex_Vector(y_r, y_i, N);	
 		}
 		else if((N%2) == 0){
 			t1 = clock();
@@ -51,7 +53,7 @@ int main()
 			t2 = clock();
 			printf("%f secs\n", 1.0*(t2-t1)/CLOCKS_PER_SEC);	
 			system("pause");
-			//Print_Complex_Vector(y_r, y_i, N);	
+			q?0:Print_Complex_Vector(y_r, y_i, N);	
 		}
 		else {
 			printf("OH!have some error!");
@@ -78,7 +80,7 @@ int FFT_2(double *x_r, double *x_i, double *y_r, double *y_i, int N)
 	// input : x = x_r + i * x_i
 	// output: y = y_r + i * y_i
 	int k, n;
-	double *u_r, *u_i, *v_r, *v_i, w_r, w_i;
+	double *u_r, *u_i, *v_r, *v_i, w_r, w_i, theta;
 	
 	u_r = (double *) malloc(N*sizeof(double));
 	u_i = (double *) malloc(N*sizeof(double));
@@ -91,24 +93,17 @@ int FFT_2(double *x_r, double *x_i, double *y_r, double *y_i, int N)
 		u_r[n+N/2] = x_r[2*n+1];
 		u_i[n+N/2] = x_i[2*n+1];
 	}
-	if((n%5) == 0){
-		FFT_5(u_r, u_i, v_r, v_i, N/2);
-		FFT_5(u_r+N/2, u_i+N/2, v_r+N/2, v_i+N/2, N/2);
-	}
-	else if((n%3) == 0){
-		FFT_3(u_r, u_i, v_r, v_i, N/2);
-		FFT_3(u_r+N/2, u_i+N/2, v_r+N/2, v_i+N/2, N/2);
-	}
-	else{
-		FFT_2(u_r, u_i, v_r, v_i, N/2);
-		FFT_2(u_r+N/2, u_i+N/2, v_r+N/2, v_i+N/2, N/2);
-	}
-	
+
+	FFT_2(u_r, u_i, v_r, v_i, N/2);
+	FFT_2(u_r+N/2, u_i+N/2, v_r+N/2, v_i+N/2, N/2);
+
 	for(k=0;k<N/2;++k)
 	{
 		// w^{-k} 
-		w_r = cos(-k*2*M_PI/N);
-		w_i = sin(-k*2*M_PI/N);
+		theta = -k*2*M_PI/N;
+		w_r = cos(theta);
+		w_i = sin(theta);
+		
 		y_r[k] = v_r[k] + (w_r*v_r[k+N/2] - w_i*v_i[k+N/2]);
 		y_i[k] = v_i[k] + (w_r*v_i[k+N/2] + w_i*v_r[k+N/2]);
 		y_r[k+N/2] = v_r[k] - (w_r*v_r[k+N/2] - w_i*v_i[k+N/2]);
@@ -132,7 +127,7 @@ int FFT_5(double *x_r, double *x_i, double *y_r, double *y_i, int N)
 		return 0; 
 	}
 	int k, n;
-	double *u_r, *u_i, *v_r, *v_i, w_r, w_i,wr,wi;
+	double *u_r, *u_i, *v_r, *v_i, w_r, w_i,wr,wi,theta;
 	u_r = (double *) malloc(N*sizeof(double));
 	u_i = (double *) malloc(N*sizeof(double));
 	v_r = (double *) malloc(N*sizeof(double));
@@ -176,90 +171,25 @@ int FFT_5(double *x_r, double *x_i, double *y_r, double *y_i, int N)
 	
 	for(k=0;k<N/5;++k)
 	{
-		w_r = cos(-k*2*M_PI/N);
-		w_i = sin(-k*2*M_PI/N);
-		y_r[k] = v_r[k] + w_r*v_r[k+N/5] - w_i*v_i[k+N/5];
-		y_i[k] = v_i[k] + w_r*v_i[k+N/5] + w_i*v_r[k+N/5];
-		w_r = cos(-k*4*M_PI/N);
-		w_i = sin(-k*4*M_PI/N);
-		y_r[k] += w_r*v_r[k+2*N/5] - w_i*v_i[k+2*N/5]; 
-		y_i[k] += w_r*v_i[k+2*N/5] + w_i*v_r[k+2*N/5];
-		w_r = cos(-k*6*M_PI/N);
-		w_i = sin(-k*6*M_PI/N);
-		y_r[k] += w_r*v_r[k+3*N/5] - w_i*v_i[k+3*N/5];
-		y_i[k] += w_r*v_i[k+3*N/5] + w_i*v_r[k+3*N/5];
-		w_r = cos(-k*8*M_PI/N);
-		w_i = sin(-k*8*M_PI/N);
-		y_r[k] += w_r*v_r[k+4*N/5] - w_i*v_i[k+4*N/5];
-		y_i[k] += w_r*v_i[k+4*N/5] + w_i*v_r[k+4*N/5];
-		
-		w_r = cos(-(k+N/5)*2*M_PI/N);
-		w_i = sin(-(k+N/5)*2*M_PI/N);
-		y_r[k+N/5] = v_r[k] + w_r*v_r[k+N/5] - w_i*v_i[k+N/5];
-		y_i[k+N/5] = v_i[k] + w_r*v_i[k+N/5] + w_i*v_r[k+N/5];
-		w_r = cos(-(k+N/5)*4*M_PI/N);
-		w_i = sin(-(k+N/5)*4*M_PI/N);
-		y_r[k+N/5] += w_r*v_r[k+2*N/5] - w_i*v_i[k+2*N/5]; 
-		y_i[k+N/5] += w_r*v_i[k+2*N/5] + w_i*v_r[k+2*N/5];
-		w_r = cos(-(k+N/5)*6*M_PI/N);
-		w_i = sin(-(k+N/5)*6*M_PI/N);
-		y_r[k+N/5] += w_r*v_r[k+3*N/5] - w_i*v_i[k+3*N/5];
-		y_i[k+N/5] += w_r*v_i[k+3*N/5] + w_i*v_r[k+3*N/5];
-		w_r = cos(-(k+N/5)*8*M_PI/N);
-		w_i = sin(-(k+N/5)*8*M_PI/N);
-		y_r[k+N/5] += w_r*v_r[k+4*N/5] - w_i*v_i[k+4*N/5];
-		y_i[k+N/5] += w_r*v_i[k+4*N/5] + w_i*v_r[k+4*N/5];
-		
-		w_r = cos(-(k+2*N/5)*2*M_PI/N);
-		w_i = sin(-(k+2*N/5)*2*M_PI/N);
-		y_r[k+2*N/5] = v_r[k] + w_r*v_r[k+N/5] - w_i*v_i[k+N/5];
-		y_i[k+2*N/5] = v_i[k] + w_r*v_i[k+N/5] + w_i*v_r[k+N/5];
-		w_r = cos(-(k+2*N/5)*4*M_PI/N);
-		w_i = sin(-(k+2*N/5)*4*M_PI/N);
-		y_r[k+2*N/5] += w_r*v_r[k+2*N/5] - w_i*v_i[k+2*N/5]; 
-		y_i[k+2*N/5] += w_r*v_i[k+2*N/5] + w_i*v_r[k+2*N/5];
-		w_r = cos(-(k+2*N/5)*6*M_PI/N);
-		w_i = sin(-(k+2*N/5)*6*M_PI/N);
-		y_r[k+2*N/5] += w_r*v_r[k+3*N/5] - w_i*v_i[k+3*N/5];
-		y_i[k+2*N/5] += w_r*v_i[k+3*N/5] + w_i*v_r[k+3*N/5];
-		w_r = cos(-(k+2*N/5)*8*M_PI/N);
-		w_i = sin(-(k+2*N/5)*8*M_PI/N);
-		y_r[k+2*N/5] += w_r*v_r[k+4*N/5] - w_i*v_i[k+4*N/5];
-		y_i[k+2*N/5] += w_r*v_i[k+4*N/5] + w_i*v_r[k+4*N/5];
-		
-		w_r = cos(-(k+3*N/5)*2*M_PI/N);
-		w_i = sin(-(k+3*N/5)*2*M_PI/N);
-		y_r[k+3*N/5] = v_r[k] + w_r*v_r[k+N/5] - w_i*v_i[k+N/5];
-		y_i[k+3*N/5] = v_i[k] + w_r*v_i[k+N/5] + w_i*v_r[k+N/5];
-		w_r = cos(-(k+3*N/5)*4*M_PI/N);
-		w_i = sin(-(k+3*N/5)*4*M_PI/N);
-		y_r[k+3*N/5] += w_r*v_r[k+2*N/5] - w_i*v_i[k+2*N/5]; 
-		y_i[k+3*N/5] += w_r*v_i[k+2*N/5] + w_i*v_r[k+2*N/5];
-		w_r = cos(-(k+3*N/5)*6*M_PI/N);
-		w_i = sin(-(k+3*N/5)*6*M_PI/N);
-		y_r[k+3*N/5] += w_r*v_r[k+3*N/5] - w_i*v_i[k+3*N/5];
-		y_i[k+3*N/5] += w_r*v_i[k+3*N/5] + w_i*v_r[k+3*N/5];
-		w_r = cos(-(k+3*N/5)*8*M_PI/N);
-		w_i = sin(-(k+3*N/5)*8*M_PI/N);
-		y_r[k+3*N/5] += w_r*v_r[k+4*N/5] - w_i*v_i[k+4*N/5];
-		y_i[k+3*N/5] += w_r*v_i[k+4*N/5] + w_i*v_r[k+4*N/5];
-		
-		w_r = cos(-(k+4*N/5)*2*M_PI/N);
-		w_i = sin(-(k+4*N/5)*2*M_PI/N);
-		y_r[k+4*N/5] = v_r[k] + w_r*v_r[k+N/5] - w_i*v_i[k+N/5];
-		y_i[k+4*N/5] = v_i[k] + w_r*v_i[k+N/5] + w_i*v_r[k+N/5];
-		w_r = cos(-(k+4*N/5)*4*M_PI/N);
-		w_i = sin(-(k+4*N/5)*4*M_PI/N);
-		y_r[k+4*N/5] += w_r*v_r[k+2*N/5] - w_i*v_i[k+2*N/5]; 
-		y_i[k+4*N/5] += w_r*v_i[k+2*N/5] + w_i*v_r[k+2*N/5];
-		w_r = cos(-(k+4*N/5)*6*M_PI/N);
-		w_i = sin(-(k+4*N/5)*6*M_PI/N);
-		y_r[k+4*N/5] += w_r*v_r[k+3*N/5] - w_i*v_i[k+3*N/5];
-		y_i[k+4*N/5] += w_r*v_i[k+3*N/5] + w_i*v_r[k+3*N/5];
-		w_r = cos(-(k+4*N/5)*8*M_PI/N);
-		w_i = sin(-(k+4*N/5)*8*M_PI/N);
-		y_r[k+4*N/5] += w_r*v_r[k+4*N/5] - w_i*v_i[k+4*N/5];
-		y_i[k+4*N/5] += w_r*v_i[k+4*N/5] + w_i*v_r[k+4*N/5];
+		for(int i = 0 ; i<5 ; i++){	
+			theta = -(k+i*N/5)*2*M_PI/N;
+			wr = cos(theta);
+			wi = sin(theta);
+			y_r[k+i*N/5] = v_r[k] + wr*v_r[k+N/5] - wi*v_i[k+N/5];
+			y_i[k+i*N/5] = v_i[k] + wr*v_i[k+N/5] + wi*v_r[k+N/5];
+			w_r = 4*wr*wr*wr-3*wr;
+			w_i = 3*wi - 4*wi*wi*wi;
+			y_r[k+i*N/5] += w_r*v_r[k+3*N/5] - w_i*v_i[k+3*N/5];
+			y_i[k+i*N/5] += w_r*v_i[k+3*N/5] + w_i*v_r[k+3*N/5];
+			w_r = 2*wr*wr-1;
+			w_i = 2*wr*wi;
+			y_r[k+i*N/5] += w_r*v_r[k+2*N/5] - w_i*v_i[k+2*N/5]; 
+			y_i[k+i*N/5] += w_r*v_i[k+2*N/5] + w_i*v_r[k+2*N/5];
+			wr = 2*w_r*w_r - 1;
+			wi = 2*w_r*w_i;
+			y_r[k+i*N/5] += wr*v_r[k+4*N/5] - wi*v_i[k+4*N/5];
+			y_i[k+i*N/5] += wr*v_i[k+4*N/5] + wi*v_r[k+4*N/5];
+		}
 	}
 	
 	free(u_r);
@@ -279,7 +209,7 @@ int FFT_3(double *x_r, double *x_i, double *y_r, double *y_i, int N)
 		return 0; 
 	}
 	int k, n;
-	double *u_r, *u_i, *v_r, *v_i, w_r, w_i,wr,wi;
+	double *u_r, *u_i, *v_r, *v_i, w_r, w_i,wr,wi,theta;
 	u_r = (double *) malloc(N*sizeof(double));
 	u_i = (double *) malloc(N*sizeof(double));
 	v_r = (double *) malloc(N*sizeof(double));
@@ -293,12 +223,7 @@ int FFT_3(double *x_r, double *x_i, double *y_r, double *y_i, int N)
 		u_r[n+2*N/3] = x_r[3*n+2];
 		u_i[n+2*N/3] = x_i[3*n+2];
 	}
-	if((n%5) == 0){
-		FFT_5(u_r, u_i, v_r, v_i, N/3);
-		FFT_5(u_r+N/3, u_i+N/3, v_r+N/3, v_i+N/3, N/3);
-		FFT_5(u_r+2*N/3, u_i+2*N/3, v_r+2*N/3, v_i+2*N/3, N/3);
-	}
-	else if((n%3) == 0){
+	if((n%3) == 0){
 		FFT_3(u_r, u_i, v_r, v_i, N/3);
 		FFT_3(u_r+N/3, u_i+N/3, v_r+N/3, v_i+N/3, N/3);
 		FFT_3(u_r+2*N/3, u_i+2*N/3, v_r+2*N/3, v_i+2*N/3, N/3);
@@ -312,32 +237,35 @@ int FFT_3(double *x_r, double *x_i, double *y_r, double *y_i, int N)
 	
 	for(k=0;k<N/3;++k)
 	{
-		w_r = cos(-k*2*M_PI/N);
-		w_i = sin(-k*2*M_PI/N);
+		theta = -k*2*M_PI/N;
+		w_r = cos(theta);
+		w_i = sin(theta);
 		y_r[k] = v_r[k] + w_r*v_r[k+N/3] - w_i*v_i[k+N/3];
 		y_i[k] = v_i[k] + w_r*v_i[k+N/3] + w_i*v_r[k+N/3];
-		w_r = cos(-k*4*M_PI/N);
-		w_i = sin(-k*4*M_PI/N);
-		y_r[k] += w_r*v_r[k+2*N/3] - w_i*v_i[k+2*N/3];
-		y_i[k] += w_r*v_i[k+2*N/3] + w_i*v_r[k+2*N/3];
+		wr = 2*w_r*w_r - 1;
+		wi = 2*w_r*w_i;
+		y_r[k] += wr*v_r[k+2*N/3] - wi*v_i[k+2*N/3];
+		y_i[k] += wr*v_i[k+2*N/3] + wi*v_r[k+2*N/3];
 		
-		w_r = cos(-(k+N/3)*2*M_PI/N);
-		w_i = sin(-(k+N/3)*2*M_PI/N);
+		theta = -(k+N/3)*2*M_PI/N;
+		w_r = cos(theta);
+		w_i = sin(theta);
 		y_r[k+N/3] = v_r[k] + w_r*v_r[k+N/3] - w_i*v_i[k+N/3];
 		y_i[k+N/3] = v_i[k] + w_r*v_i[k+N/3] + w_i*v_r[k+N/3];
-		w_r = cos(-(k+N/3)*4*M_PI/N);
-		w_i = sin(-(k+N/3)*4*M_PI/N);
-		y_r[k+N/3] += w_r*v_r[k+2*N/3] - w_i*v_i[k+2*N/3];
-		y_i[k+N/3] += w_r*v_i[k+2*N/3] + w_i*v_r[k+2*N/3];
+		wr = 2*w_r*w_r - 1;
+		wi = 2*w_r*w_i;
+		y_r[k+N/3] += wr*v_r[k+2*N/3] - wi*v_i[k+2*N/3];
+		y_i[k+N/3] += wr*v_i[k+2*N/3] + wi*v_r[k+2*N/3];
 		
-		w_r = cos(-(k+2*N/3)*2*M_PI/N);
-		w_i = sin(-(k+2*N/3)*2*M_PI/N);
+		theta = -(k+2*N/3)*2*M_PI/N;
+		w_r = cos(theta);
+		w_i = sin(theta);
 		y_r[k+2*N/3] = v_r[k] + w_r*v_r[k+N/3] - w_i*v_i[k+N/3];
 		y_i[k+2*N/3] = v_i[k] + w_r*v_i[k+N/3] + w_i*v_r[k+N/3] ;
-		w_r = cos(-(k+2*N/3)*4*M_PI/N);
-		w_i = sin(-(k+2*N/3)*4*M_PI/N);
-		y_r[k+2*N/3] += w_r*v_r[k+2*N/3] - w_i*v_i[k+2*N/3];
-		y_i[k+2*N/3] += w_r*v_i[k+2*N/3] + w_i*v_r[k+2*N/3];
+		wr = 2*w_r*w_r - 1;
+		wi = 2*w_r*w_i;
+		y_r[k+2*N/3] += wr*v_r[k+2*N/3] - wi*v_i[k+2*N/3];
+		y_i[k+2*N/3] += wr*v_i[k+2*N/3] + wi*v_r[k+2*N/3];
 	}
 	
 	free(u_r);
